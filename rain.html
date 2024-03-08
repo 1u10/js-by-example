@@ -10,7 +10,7 @@
 
             m = document.getElementById("rain-canvas").getContext("2d")
 
-            var drop = (x, y, color, size) => { m.fillStyle=color; m.fillRect(x,y, size.width ,size.height);}
+            var drop = (x, y, color, size) => { m.fillStyle=color; m.fillRect(x, y, size.width, size.height);}
 
             let drops = [];
             let windowSize = 800;
@@ -35,6 +35,26 @@
                 }
 
                 rain();
+            }
+
+            let a = -10;
+            let b = 0;
+
+            var parabolicDropCollition = () => {
+
+                b = a * a - a + 12
+                var j= a + 100
+                var s = - a + 70
+                drop(j,b,"blue",{width:10 , height:10})
+                drop(s,b,"blue",{width:10 , height:10})
+
+
+                if(a>10){
+                    b = 0
+                    a = -10
+                }
+
+                a = a + 1
             }
 
             var rain = () => {
