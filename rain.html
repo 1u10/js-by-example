@@ -7,54 +7,71 @@
         <canvas id="rain-canvas" width="800" height="800">
         </canvas>
         <script type="text/javascript">
-
+            // remove magic numbers!!!
             m = document.getElementById("rain-canvas").getContext("2d")
 
             var drop = (x, y, color, size) => { m.fillStyle=color; m.fillRect(x, y, size.width, size.height);}
 
             let drops = [];
+            let dropsCollision = [];
             let windowSize = 800;
             let floorPosition = 700;
+            const MAX_NUMBER_DROPS_COLLITIONS = 70;
 
             var randomNumber = (max) => Math.floor(Math.random() * max);
             var randomNumberBetween = (start, end) => (Math.floor(Math.random() * (end - start) + start));
+            var generateRandomColor = () => "rgba(0,0," + randomNumberBetween(100, 256) + ","+ (Math.random() * (0.9 - 0.1) + 0.1).toFixed(2) +")"
 
             var cleanCanvas = () => {
                 m.fillStyle = "white";
                 m.fillRect(0, 0, windowSize, windowSize);
             }
 
+            var createDrop = () => {
+                var x = randomNumber(1000);
+                var y = randomNumber(-1000);
+                var color = generateRandomColor()
+                var size = { width: 1, height: randomNumberBetween(2,25) };
+                return {x, y, color, size};
+            }
+
             var init = () => {
 
-                for (var i = 0; i < 2000; i++) {
-                    var x = randomNumber(1000);
-                    var y = randomNumber(-1000);
-                    var color ="rgba(0,0," + randomNumberBetween(100, 256) + ","+ (Math.random() * (0.9 - 0.1) + 0.1).toFixed(2) +")";
-                    var size = { width: 1, height: randomNumber(25) };
-                    drops.push({x, y, color, size});
+                for (var i = 0; i < 500; i++) {
+                    drops.push(createDrop());
                 }
 
                 rain();
             }
 
-            let a = -10;
-            let b = 0;
+            var calculateParabola = (x) => {
+                var y = x * x - x + 12
+                return (x != 0) ? Math.round(y/x) : y
+            }
 
             var parabolicDropCollition = () => {
+                // a(x-h)² + k 
 
-                b = a * a - a + 12
-                var j= a + 100
-                var s = - a + 70
-                drop(j,b,"blue",{width:10 , height:10})
-                drop(s,b,"blue",{width:10 , height:10})
+                for (var i = 0; i < dropsCollision.length; i++) {
 
+                    var  position = dropsCollision[i];
+                    var color = generateRandomColor()
 
-                if(a>10){
-                    b = 0
-                    a = -10
+                    drop(position.x, position.y , color, { width: 3, height: 3})
+                    
+                    position.x = position.x + 1
+
+                    position.y = position.y + calculateParabola(position.counter)
+                    
+                    position.counter++
+
+                    if(position.counter > 6){
+                        dropsCollision.splice(i,1)
+                        drops.push(createDrop());
+                    }
+                
                 }
-
-                a = a + 1
+                
             }
 
             var rain = () => {
@@ -69,20 +86,28 @@
 
                     d.x = d.x 
 
-                    d.y = d.y + randomNumber(70); // esto no deberia estar aca 
+                    d.y = d.y + randomNumber(70);
 
+                    if( d.y > floorPosition ) {
+                        if((dropsCollision.length < MAX_NUMBER_DROPS_COLLITIONS)){
+                            dropsCollision.push({x:d.x , y:d.y, counter:-5})
+                            drops.splice(index,1)
+                        }else{
+                            d.size.width = d.size.height;
+                            d.size.height = 1;
+                        }
+                        
+                    }
                     if( d.y > windowSize ) {
                         d.y = randomNumber(-1000);
                         d.x = randomNumber(1000);
-                        d.size.width = 1;
-                        d.size.height = randomNumber(25);
+                        d.size.width = 2;
+                        d.size.height = randomNumberBetween(5,25);
                     }
 
-                    if( d.y > floorPosition ) {
-                        d.size.width = d.size.height;
-                        d.size.height = 1;
-                    }
                 }
+
+                parabolicDropCollition()
 
                 setTimeout(rain,100);
             }
